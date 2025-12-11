@@ -13,6 +13,7 @@ import {
   docData,
   limit,
 } from '@angular/fire/firestore';
+import { normalizeString } from '../../shared/utils/text.utils';
 import { Observable, from, map, switchMap } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { Group, GroupMember } from '../models/group.model';
@@ -37,7 +38,7 @@ export class GroupService {
       isOpen: true,
       memberIds: [currentUser.id],
       status: true,
-      searchName: this.normalize(name),
+      searchName: normalizeString(name),
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
@@ -80,7 +81,7 @@ export class GroupService {
   }
 
   searchGroups(term: string): Observable<Group[]> {
-    const normalizedTerm = this.normalize(term);
+    const normalizedTerm = normalizeString(term);
     const q = query(
       this.groupsCollection,
       where('isOpen', '==', true),
@@ -99,13 +100,5 @@ export class GroupService {
         deletedAt: Timestamp.now(),
       })
     );
-  }
-
-  private normalize(text: string): string {
-    return text
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Remove accents
-      .replace(/\s+/g, ''); // Remove all spaces
   }
 }

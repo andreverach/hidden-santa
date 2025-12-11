@@ -134,14 +134,23 @@ export class GroupDetailComponent implements OnInit {
     this.inviteLoading.set(true);
     this.userService.searchUsers(term).subscribe({
       next: (users) => {
-        // Filter out existing members
-        const currentMemberIds = this.members().map((m) => m.userId);
-        const filteredUsers = users.filter((u) => !currentMemberIds.includes(u.id));
-        this.inviteResults.set(filteredUsers);
+        // Do not filter them out, just mark them maybe?
+        // Actually, if we filter them out, the user thinks "No results".
+        // Better to show them as "Disabled" or "Already Member".
+        // Use a local interface extension if possible or just use the AppUser and handle in template if we can't extend easily.
+        // Let's rely on inviteResults holding AppUser and do the check in template?
+        // No, better to filter effectively if we want clean UI, BUT user asked for "ya lo he agregado previamente" case.
+        // So we should SHOW them but indicate they are members.
+
+        this.inviteResults.set(users);
         this.inviteLoading.set(false);
       },
       error: () => this.inviteLoading.set(false),
     });
+  }
+
+  isMember(userId: string): boolean {
+    return this.members().some((m) => m.userId === userId);
   }
 
   inviteUser(user: AppUser): void {

@@ -7,4 +7,5 @@ export interface AppUser {
   photoURL: string;
   createdAt: Timestamp;
   lastLogin: Timestamp;
+  searchName?: string;
 }

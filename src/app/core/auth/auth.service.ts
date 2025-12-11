@@ -4,6 +4,7 @@ import { Firestore, doc, getDoc, setDoc, updateDoc, docData } from '@angular/fir
 import { Router } from '@angular/router';
 import { catchError, from, Observable, switchMap, tap, throwError, of } from 'rxjs';
 import { AppUser } from '../models/user.model';
+import { normalizeString } from '../../shared/utils/text.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -56,6 +57,8 @@ export class AuthService {
     const userSnapshot = await getDoc(userDocRef);
     const now = new Date();
 
+    const searchName = normalizeString(user.displayName || user.email || '');
+
     if (!userSnapshot.exists()) {
       // Create new user profile
       await setDoc(userDocRef, {
@@ -63,12 +66,19 @@ export class AuthService {
         email: user.email,
         displayName: user.displayName,
         photoURL: user.photoURL,
+        searchName: searchName,
         createdAt: now,
         lastLogin: now,
       });
     } else {
-      // Update last login time
-      await updateDoc(userDocRef, { lastLogin: now });
+      // Update last login time and mostly ensure searchName is consistent
+      await updateDoc(userDocRef, {
+        lastLogin: now,
+        // Also update basic info if changed in provider, purely optional but good for consistency
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        searchName: searchName,
+      });
     }
   }
 }
