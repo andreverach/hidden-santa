@@ -7,7 +7,7 @@ import { MembershipService } from '../../../core/services/membership.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { Group } from '../../../core/models/group.model';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
-import { Subject, debounceTime, distinctUntilChanged, switchMap, of, tap } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, switchMap, of, tap, catchError } from 'rxjs';
 
 @Component({
   selector: 'app-find-group',
@@ -39,7 +39,12 @@ export class FindGroupComponent {
         tap(() => this.loading.set(true)),
         switchMap((term) => {
           if (!term || term.length < 2) return of([]);
-          return this.groupService.searchGroups(term);
+          return this.groupService.searchGroups(term).pipe(
+            catchError((error) => {
+              console.error('Search error (check console for index link):', error);
+              return of([]);
+            })
+          );
         })
       )
       .subscribe({
@@ -47,7 +52,10 @@ export class FindGroupComponent {
           this.results.set(groups);
           this.loading.set(false);
         },
-        error: () => this.loading.set(false),
+        error: (err) => {
+          console.error('Stream Error:', err);
+          this.loading.set(false);
+        },
       });
   }
 
