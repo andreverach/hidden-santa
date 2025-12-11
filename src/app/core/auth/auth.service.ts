@@ -1,8 +1,9 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Auth, GoogleAuthProvider, signInWithPopup, signOut, user, User } from '@angular/fire/auth';
-import { Firestore, doc, getDoc, setDoc, updateDoc } from '@angular/fire/firestore';
+import { Firestore, doc, getDoc, setDoc, updateDoc, docData } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
-import { catchError, from, Observable, switchMap, tap, throwError } from 'rxjs';
+import { catchError, from, Observable, switchMap, tap, throwError, of } from 'rxjs';
+import { AppUser } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root',
@@ -15,11 +16,21 @@ export class AuthService {
   // Expose user as a signal for easier usage in templates integration
   // effectively using 'user' observable from angular/fire
   user$ = user(this.auth);
-  currentUser = signal<User | null>(null);
+
+  // Observable that fetches the full user profile from Firestore
+  userProfile$ = this.user$.pipe(
+    switchMap((user) => {
+      if (!user) return of(null);
+      const userDocRef = doc(this.firestore, `users/${user.uid}`);
+      return docData(userDocRef) as Observable<AppUser>;
+    })
+  );
+
+  currentUser = signal<AppUser | null>(null);
 
   constructor() {
     // Sync signal with observable
-    this.user$.subscribe((user) => this.currentUser.set(user));
+    this.userProfile$.subscribe((user) => this.currentUser.set(user));
   }
 
   loginWithGoogle(): Observable<void> {

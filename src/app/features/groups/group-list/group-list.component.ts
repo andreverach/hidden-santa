@@ -1,8 +1,9 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
+
 import { GroupService } from '../../../core/services/group.service';
+import { Group } from '../../../core/models/group.model';
 
 @Component({
   selector: 'app-group-list',
@@ -10,13 +11,16 @@ import { GroupService } from '../../../core/services/group.service';
   imports: [CommonModule, RouterLink],
   templateUrl: './group-list.component.html',
 })
-export class GroupListComponent {
+export class GroupListComponent implements OnInit {
   private groupService = inject(GroupService);
 
   // Data Signal
-  groups = toSignal(this.groupService.getUserGroups(), { initialValue: [] });
+  groups = signal<Group[]>([]);
 
   // Computed Signals (Derived State)
-  groupsCount = computed(() => this.groups().length);
-  hasGroups = computed(() => this.groupsCount() > 0);
+  hasGroups = computed(() => this.groups().length > 0);
+
+  ngOnInit(): void {
+    this.groupService.getUserGroups().subscribe((groups) => this.groups.set(groups));
+  }
 }

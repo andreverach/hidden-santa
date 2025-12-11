@@ -30,7 +30,7 @@ export class GroupService {
     const groupData: Omit<Group, 'id'> = {
       name,
       description,
-      creatorId: currentUser.uid,
+      creatorId: currentUser.id,
       status: true,
       createdAt: now,
       updatedAt: now,
@@ -41,19 +41,17 @@ export class GroupService {
   }
 
   getUserGroups(): Observable<Group[]> {
-    return this.authService.user$.pipe(
+    return this.authService.userProfile$.pipe(
       switchMap((user) => {
         if (!user) return from([]); // Return empty if no user
 
         const q = query(
           this.groupsCollection,
-          where('creatorId', '==', user.uid)
-          // where('status', '==', true) // Temporarily removed to debug composite index or status issue
+          where('creatorId', '==', user.id),
+          where('status', '==', true)
         );
-        return collectionData(q, { idField: 'id' })
-          .pipe
-          //tap((data) => console.log('Groups loaded:', data))
-          () as Observable<Group[]>;
+        // Cast the observable effectively
+        return collectionData(q, { idField: 'id' }) as Observable<Group[]>;
       })
     );
   }
