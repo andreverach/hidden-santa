@@ -22,6 +22,12 @@ export const routes: Routes = [
     ...canActivate(redirectUnauthorizedToLogin),
   },
   {
+    path: 'groups/find',
+    loadComponent: () =>
+      import('./features/groups/find-group/find-group.component').then((m) => m.FindGroupComponent),
+    ...canActivate(redirectUnauthorizedToLogin),
+  },
+  {
     path: 'groups/:id',
     loadComponent: () =>
       import('./features/groups/group-detail/group-detail.component').then(

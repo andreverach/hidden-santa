@@ -1,0 +1,76 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-6 flex items-center justify-between">
+      <h2 class="text-2xl font-bold text-gray-900">Buscar Grupos</h2>
+      <a routerLink="/dashboard" class="text-sm text-indigo-600 hover:text-indigo-500">
+        Volver al Dashboard
+      </a>
+    </div>
+
+    <!-- Search Box -->
+    <div class="bg-white p-4 rounded-lg shadow mb-6">
+      <label for="search" class="block text-sm font-medium text-gray-700 sr-only"
+        >Buscar grupos</label
+      >
+      <div class="relative rounded-md shadow-sm">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </div>
+        <input
+          type="text"
+          name="search"
+          id="search"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="onSearch($event)"
+          class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-3"
+          placeholder="Busca un grupo por nombre..."
+        />
+      </div>
+      <p class="mt-2 text-xs text-gray-500">Escribe al menos 2 caracteres para buscar.</p>
+    </div>
+
+    <!-- Results -->
+    <div class="space-y-4">
+      <div *ngIf="loading()" class="flex justify-center py-8">
+        <app-loading-spinner colorClass="border-indigo-600"></app-loading-spinner>
+      </div>
+
+      <ng-container *ngIf="!loading()">
+        <div
+          *ngFor="let group of results()"
+          class="bg-white shadow rounded-lg p-6 flex justify-between items-center transition hover:shadow-md"
+        >
+          <div>
+            <h3 class="text-lg font-medium text-gray-900">{{ group.name }}</h3>
+            <p class="text-sm text-gray-500">{{ group.description || 'Sin descripción' }}</p>
+            <span
+              class="mt-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
+            >
+              Abierto
+            </span>
+          </div>
+          <button
+            (click)="joinGroup(group)"
+            class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none cursor-pointer"
+          >
+            Unirse
+          </button>
+        </div>
+
+        <div
+          *ngIf="results().length === 0 && searchTerm().length >= 2"
+          class="text-center py-12 bg-white rounded-lg shadow"
+        >
+          <p class="text-gray-500">No se encontraron grupos abiertos con ese nombre.</p>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

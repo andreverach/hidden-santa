@@ -19,12 +19,12 @@
     </div>
 
     <!-- Loading State -->
-    <div *ngIf="!group()" class="flex justify-center py-12">
+    <div *ngIf="loading()" class="flex justify-center py-12">
       <app-loading-spinner colorClass="border-indigo-600"></app-loading-spinner>
     </div>
 
     <!-- Group Content -->
-    <div *ngIf="group() as g" class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div *ngIf="!loading() && group() as g" class="bg-white shadow overflow-hidden sm:rounded-lg">
       <div class="px-4 py-5 sm:px-6 flex justify-between items-start">
         <div>
           <h3 class="text-2xl font-bold leading-6 text-gray-900">{{ g.name }}</h3>
@@ -53,10 +53,109 @@
       </div>
 
       <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
-        <h4 class="text-lg font-medium text-gray-900 mb-4">Participantes</h4>
-        <div class="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
-          <p class="text-gray-500">La lista de participantes se implementará pronto...</p>
+        <h4 class="text-lg font-medium text-gray-900 mb-4">
+          Participantes ({{ membersLoading() ? '...' : members().length }})
+        </h4>
+
+        <!-- Skeleton Loading for Members -->
+        <div *ngIf="membersLoading()" class="space-y-4">
+          <div *ngFor="let i of [1, 2, 3]" class="flex items-center space-x-3 py-2">
+            <app-skeleton-loader shape="circle" width="40px" height="40px"></app-skeleton-loader>
+            <div class="flex-1 space-y-2">
+              <app-skeleton-loader width="40%" height="16px"></app-skeleton-loader>
+              <app-skeleton-loader width="30%" height="12px"></app-skeleton-loader>
+            </div>
+          </div>
         </div>
+
+        <ul *ngIf="!membersLoading()" role="list" class="divide-y divide-gray-200">
+          <li *ngFor="let member of members()" class="py-4 flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="h-10 w-10 shrink-0">
+                <img
+                  *ngIf="member.user?.photoURL"
+                  class="h-10 w-10 rounded-full"
+                  [src]="member.user?.photoURL"
+                  alt=""
+                />
+                <div
+                  *ngIf="!member.user?.photoURL"
+                  class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 font-bold"
+                >
+                  {{ member.user?.displayName?.charAt(0) || 'U' }}
+                </div>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium text-gray-900">
+                  {{ member.user?.displayName || 'Usuario Desconocido' }}
+                  <span
+                    *ngIf="member.role === 'admin'"
+                    class="text-indigo-600 font-normal text-xs ml-1"
+                    >(Administrador)</span
+                  >
+                </p>
+                <p class="text-xs text-gray-500">
+                  {{ member.user?.email }}
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                [ngClass]="{
+                  'bg-green-100 text-green-800': member.status === 'active',
+                  'bg-yellow-100 text-yellow-800': member.status === 'invited',
+                  'bg-orange-100 text-orange-800': member.status === 'requesting'
+                }"
+              >
+                {{ member.status | titlecase }}
+              </span>
+
+              <!-- Admin Actions -->
+              <div *ngIf="isAdmin()" class="flex items-center gap-1 ml-2">
+                <!-- Approve Request -->
+                <button
+                  *ngIf="member.status === 'requesting'"
+                  (click)="approveMember(member)"
+                  class="text-green-600 hover:text-green-900 p-1 rounded-full hover:bg-green-50 cursor-pointer"
+                  title="Aprobar solicitud"
+                >
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </button>
+
+                <!-- Reject/Remove Member -->
+                <button
+                  *ngIf="member.userId !== currentUser()?.id"
+                  (click)="removeMember(member)"
+                  class="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-50 cursor-pointer"
+                  [title]="
+                    member.status === 'requesting' ? 'Rechazar solicitud' : 'Eliminar miembro'
+                  "
+                >
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </li>
+
+          <li *ngIf="members().length === 0" class="py-4 text-center text-gray-500">
+            No hay participantes visibles.
+          </li>
+        </ul>
       </div>
     </div>
   </div>

@@ -6,6 +6,8 @@ import {
   where,
   limit,
   collectionData,
+  doc,
+  docData,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { AppUser } from '../models/user.model';
@@ -27,5 +29,10 @@ export class UserService {
       limit(5)
     );
     return collectionData(q, { idField: 'id' }) as Observable<AppUser[]>;
+  }
+
+  getUser(userId: string): Observable<AppUser | undefined> {
+    const docRef = doc(this.firestore, 'users', userId);
+    return docData(docRef, { idField: 'id' }) as Observable<AppUser | undefined>;
   }
 }
