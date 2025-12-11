@@ -9,6 +9,9 @@ import {
   collection,
   collectionData,
   query,
+  writeBatch,
+  arrayUnion,
+  arrayRemove,
 } from '@angular/fire/firestore';
 import { Observable, from } from 'rxjs';
 import { GroupMember } from '../models/group.model';
@@ -51,25 +54,37 @@ export class MembershipService {
   }
 
   // Accept an invite (User action) or Approve a request (Admin action) -> Becomes active member
+  // Accept an invite (User action) or Approve a request (Admin action) -> Becomes active member
   updateStatus(groupId: string, userId: string, status: 'active'): Observable<void> {
+    const batch = writeBatch(this.firestore);
+
+    // 1. Update Member Status
     const memberRef = doc(this.firestore, `groups/${groupId}/members/${userId}`);
+    batch.update(memberRef, { status });
 
-    // If becoming active, we might want to update the main Group document's memberIds array too
-    // This usually requires a Cloud Function or a batch write to be atomic and safe.
-    // For this prototype, we'll just update the member status here.
-    // Ideally, we must also add userId to group.memberIds so "My Groups" query works.
+    // 2. Add to Group's memberIds array (so it shows in "My Groups")
+    const groupRef = doc(this.firestore, `groups/${groupId}`);
+    batch.update(groupRef, {
+      memberIds: arrayUnion(userId),
+    });
 
-    // We will do a batch write here in a future iteration or cloud function.
-    // For now, let's just update the status.
-    // NOTE: The user won't see this group in "My Groups" until their ID is in group.memberIds.
-    // We should implement that update here.
-
-    return from(updateDoc(memberRef, { status }));
+    return from(batch.commit());
   }
 
   // Reject request or Leave group
   removeMember(groupId: string, userId: string): Observable<void> {
+    const batch = writeBatch(this.firestore);
+
+    // 1. Delete Member document
     const memberRef = doc(this.firestore, `groups/${groupId}/members/${userId}`);
-    return from(deleteDoc(memberRef));
+    batch.delete(memberRef);
+
+    // 2. Remove from Group's memberIds array
+    const groupRef = doc(this.firestore, `groups/${groupId}`);
+    batch.update(groupRef, {
+      memberIds: arrayRemove(userId),
+    });
+
+    return from(batch.commit());
   }
 }
