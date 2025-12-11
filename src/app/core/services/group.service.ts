@@ -37,6 +37,7 @@ export class GroupService {
       isOpen: true,
       memberIds: [currentUser.id],
       status: true,
+      searchName: this.normalize(name),
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
@@ -79,11 +80,12 @@ export class GroupService {
   }
 
   searchGroups(term: string): Observable<Group[]> {
+    const normalizedTerm = this.normalize(term);
     const q = query(
       this.groupsCollection,
       where('isOpen', '==', true),
-      where('name', '>=', term),
-      where('name', '<=', term + '\uf8ff'),
+      where('searchName', '>=', normalizedTerm),
+      where('searchName', '<=', normalizedTerm + '\uf8ff'),
       limit(10)
     );
     return collectionData(q, { idField: 'id' }) as Observable<Group[]>;
@@ -97,5 +99,13 @@ export class GroupService {
         deletedAt: Timestamp.now(),
       })
     );
+  }
+
+  private normalize(text: string): string {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove accents
+      .replace(/\s+/g, ''); // Remove all spaces
   }
 }

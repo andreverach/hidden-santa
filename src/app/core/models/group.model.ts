@@ -8,6 +8,7 @@ export interface Group {
   isOpen: boolean; // Defines if group is open to join requests
   memberIds: string[]; // Array of user IDs for efficient querying 'my groups'
   status: boolean; // Active vs Soft Deleted
+  searchName?: string; // Normalized name for search
   createdAt: Timestamp;
   updatedAt: Timestamp;
   deletedAt: Timestamp | null;
