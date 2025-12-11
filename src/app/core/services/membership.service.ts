@@ -15,10 +15,11 @@ import {
   collectionGroup,
   where,
   onSnapshot,
+  getDoc,
 } from '@angular/fire/firestore';
 import { Observable, from, combineLatest, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { GroupMember, Group } from '../models/group.model';
+import { GroupMember, Group, WishlistItem } from '../models/group.model';
 import { GroupService } from './group.service';
 
 @Injectable({
@@ -127,5 +128,29 @@ export class MembershipService {
     });
 
     return from(batch.commit());
+  }
+  // Wishlist Management
+  addWishlistItem(groupId: string, userId: string, item: WishlistItem): Observable<void> {
+    const memberRef = doc(this.firestore, `groups/${groupId}/members/${userId}`);
+    return from(
+      updateDoc(memberRef, {
+        wishlist: arrayUnion(item),
+      })
+    );
+  }
+
+  removeWishlistItem(groupId: string, userId: string, itemId: string): Observable<void> {
+    const memberRef = doc(this.firestore, `groups/${groupId}/members/${userId}`);
+    // Read the doc to find the exact item to remove, or filter out
+    // Since we don't store the exact object reference in UI always, robust way is:
+    return from(getDoc(memberRef)).pipe(
+      switchMap((snap) => {
+        if (!snap.exists()) throw new Error('Member not found');
+        const member = snap.data() as GroupMember;
+        const currentWishlist = member.wishlist || [];
+        const updatedWishlist = currentWishlist.filter((i) => i.id !== itemId);
+        return updateDoc(memberRef, { wishlist: updatedWishlist });
+      })
+    );
   }
 }

@@ -9,8 +9,9 @@ import { SkeletonLoaderComponent } from '../../../shared/components/skeleton-loa
 import { MembershipService } from '../../../core/services/membership.service';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/auth/auth.service';
-import { Group, GroupMember } from '../../../core/models/group.model';
+import { Group, GroupMember, WishlistItem } from '../../../core/models/group.model';
 import { AppUser } from '../../../core/models/user.model';
+import { Timestamp } from '@angular/fire/firestore';
 
 interface MemberWithProfile extends GroupMember {
   user?: AppUser;
@@ -48,6 +49,10 @@ export class GroupDetailComponent implements OnInit {
   inviteResults = signal<AppUser[]>([]);
   inviteLoading = signal(false);
 
+  // Wishlist Logic
+  wishlistItemName = signal('');
+  wishlistLoading = signal(false);
+
   currentUser = this.authService.currentUser;
 
   // Computed
@@ -56,6 +61,13 @@ export class GroupDetailComponent implements OnInit {
     const groupMembers = this.members();
     if (!user || groupMembers.length === 0) return false;
     return groupMembers.some((m) => m.userId === user.id && m.role === 'admin');
+  });
+
+  currentMember = computed(() => {
+    const user = this.currentUser();
+    const groupMembers = this.members();
+    if (!user) return undefined;
+    return groupMembers.find((m) => m.userId === user.id);
   });
 
   ngOnInit(): void {
@@ -170,6 +182,46 @@ export class GroupDetailComponent implements OnInit {
         console.error('Error inviting user:', err);
         alert('Error al invitar usuario');
       },
+    });
+  }
+
+  // Wishlist Methods
+  addWishItem(): void {
+    const name = this.wishlistItemName().trim();
+    if (!name) return;
+
+    const groupId = this.group()?.id;
+    const user = this.currentUser();
+    if (!groupId || !user) return;
+
+    this.wishlistLoading.set(true);
+    const newItem: WishlistItem = {
+      id: crypto.randomUUID(), // or Date.now().toString()
+      name,
+      createdAt: Timestamp.now(),
+    };
+
+    this.membershipService.addWishlistItem(groupId, user.id, newItem).subscribe({
+      next: () => {
+        this.wishlistItemName.set('');
+        this.wishlistLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error adding wish item:', err);
+        this.wishlistLoading.set(false);
+      },
+    });
+  }
+
+  removeWishItem(itemId: string): void {
+    const groupId = this.group()?.id;
+    const user = this.currentUser();
+    if (!groupId || !user) return;
+
+    if (!confirm('¿Borrar este deseo?')) return;
+
+    this.membershipService.removeWishlistItem(groupId, user.id, itemId).subscribe({
+      error: (err) => console.error('Error removing wish item:', err),
     });
   }
 }

@@ -14,9 +14,17 @@ export interface Group {
   deletedAt: Timestamp | null;
 }
 
+export interface WishlistItem {
+  id: string;
+  name: string;
+  url?: string;
+  createdAt: Timestamp;
+}
+
 export interface GroupMember {
   userId: string;
   role: 'admin' | 'member';
   status: 'active' | 'invited' | 'requesting';
   joinedAt: Timestamp;
+  wishlist?: WishlistItem[];
 }
