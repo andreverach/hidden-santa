@@ -22,6 +22,14 @@ export const routes: Routes = [
     ...canActivate(redirectUnauthorizedToLogin),
   },
   {
+    path: 'groups/:id',
+    loadComponent: () =>
+      import('./features/groups/group-detail/group-detail.component').then(
+        (m) => m.GroupDetailComponent
+      ),
+    ...canActivate(redirectUnauthorizedToLogin),
+  },
+  {
     path: 'dashboard',
     loadComponent: () =>
       import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),

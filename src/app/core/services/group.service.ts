@@ -9,10 +9,13 @@ import {
   doc,
   updateDoc,
   Timestamp,
+  setDoc,
+  docData,
+  limit,
 } from '@angular/fire/firestore';
-import { Observable, from, map, switchMap, tap } from 'rxjs';
+import { Observable, from, map, switchMap } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
-import { Group } from '../models/group.model';
+import { Group, GroupMember } from '../models/group.model';
 
 @Injectable({
   providedIn: 'root',
@@ -31,13 +34,27 @@ export class GroupService {
       name,
       description,
       creatorId: currentUser.id,
+      isOpen: true,
+      memberIds: [currentUser.id],
       status: true,
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
     };
 
-    return from(addDoc(this.groupsCollection, groupData)).pipe(map((ref) => ref.id));
+    return from(addDoc(this.groupsCollection, groupData)).pipe(
+      switchMap((ref) => {
+        // Add creator as admin in subcollection
+        const memberRef = doc(this.firestore, `groups/${ref.id}/members/${currentUser.id}`);
+        const memberData: GroupMember = {
+          userId: currentUser.id,
+          role: 'admin',
+          status: 'active',
+          joinedAt: now,
+        };
+        return from(setDoc(memberRef, memberData)).pipe(map(() => ref.id));
+      })
+    );
   }
 
   getUserGroups(): Observable<Group[]> {
@@ -47,13 +64,29 @@ export class GroupService {
 
         const q = query(
           this.groupsCollection,
-          where('creatorId', '==', user.id),
+          where('memberIds', 'array-contains', user.id),
           where('status', '==', true)
         );
         // Cast the observable effectively
         return collectionData(q, { idField: 'id' }) as Observable<Group[]>;
       })
     );
+  }
+
+  getGroup(groupId: string): Observable<Group | undefined> {
+    const docRef = doc(this.firestore, 'groups', groupId);
+    return docData(docRef, { idField: 'id' }) as Observable<Group | undefined>;
+  }
+
+  searchGroups(term: string): Observable<Group[]> {
+    const q = query(
+      this.groupsCollection,
+      where('isOpen', '==', true),
+      where('name', '>=', term),
+      where('name', '<=', term + '\uf8ff'),
+      limit(10)
+    );
+    return collectionData(q, { idField: 'id' }) as Observable<Group[]>;
   }
 
   softDeleteGroup(groupId: string): Observable<void> {

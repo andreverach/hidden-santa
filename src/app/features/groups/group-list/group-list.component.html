@@ -44,9 +44,12 @@
         </div>
       </div>
       <div class="bg-gray-50 px-4 py-4 sm:px-6 flex justify-end">
-        <button class="cursor-pointer text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+        <a
+          [routerLink]="['/groups', group.id]"
+          class="cursor-pointer text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+        >
           Ver Detalles
-        </button>
+        </a>
       </div>
     </div>
 

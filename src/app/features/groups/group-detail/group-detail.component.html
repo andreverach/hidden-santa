@@ -1,0 +1,63 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Back Navigation -->
+    <div class="mb-6">
+      <a
+        routerLink="/dashboard"
+        class="text-sm font-medium text-indigo-600 hover:text-indigo-500 flex items-center gap-1"
+      >
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Volver al Dashboard
+      </a>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="!group()" class="flex justify-center py-12">
+      <app-loading-spinner colorClass="border-indigo-600"></app-loading-spinner>
+    </div>
+
+    <!-- Group Content -->
+    <div *ngIf="group() as g" class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6 flex justify-between items-start">
+        <div>
+          <h3 class="text-2xl font-bold leading-6 text-gray-900">{{ g.name }}</h3>
+          <p class="mt-1 max-w-2xl text-sm text-gray-500">
+            {{ g.description || 'Sin descripción' }}
+          </p>
+        </div>
+
+        <!-- Status Badge -->
+        <span
+          class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+          [ngClass]="{
+            'bg-green-100 text-green-800': g.isOpen,
+            'bg-red-100 text-red-800': !g.isOpen
+          }"
+        >
+          <span
+            class="h-2 w-2 mr-2 rounded-full"
+            [ngClass]="{
+              'bg-green-400': g.isOpen,
+              'bg-red-400': !g.isOpen
+            }"
+          ></span>
+          {{ g.isOpen ? 'Abierto' : 'Cerrado' }}
+        </span>
+      </div>
+
+      <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        <h4 class="text-lg font-medium text-gray-900 mb-4">Participantes</h4>
+        <div class="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+          <p class="text-gray-500">La lista de participantes se implementará pronto...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
