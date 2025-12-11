@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { redirectLoggedInTo, redirectUnauthorizedTo, canActivate } from '@angular/fire/auth-guard';
 import { LoginComponent } from './features/auth/login/login.component';
 
+// functionally guards
 const redirectUnauthorizedToLogin = () => redirectUnauthorizedTo(['/login']);
 const redirectLoggedInToDashboard = () => redirectLoggedInTo(['/dashboard']);
 

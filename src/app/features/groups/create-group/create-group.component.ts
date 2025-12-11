@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { GroupService } from '../../../core/services/group.service';
+import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-create-group',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, LoadingSpinnerComponent],
   templateUrl: './create-group.component.html',
 })
 export class CreateGroupComponent {
@@ -16,9 +17,11 @@ export class CreateGroupComponent {
 
   name = '';
   description = '';
+  isSubmitting = false;
 
   onSubmit() {
     if (!this.name) return;
+    this.isSubmitting = true;
 
     this.groupService.createGroup(this.name, this.description).subscribe({
       next: () => {
@@ -26,6 +29,7 @@ export class CreateGroupComponent {
       },
       error: (err) => {
         console.error('Error creating group:', err);
+        this.isSubmitting = false;
         // TODO: Show toast error
       },
     });
