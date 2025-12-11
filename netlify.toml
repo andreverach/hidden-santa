@@ -1,4 +1,5 @@
 [build]
+  command = "npm install --legacy-peer-deps && ng build"
   publish = "dist/hidden-santa"
   command = "ng build"
 [[redirects]]
