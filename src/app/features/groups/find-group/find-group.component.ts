@@ -7,7 +7,16 @@ import { MembershipService } from '../../../core/services/membership.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { Group } from '../../../core/models/group.model';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
-import { Subject, debounceTime, distinctUntilChanged, switchMap, of, tap, catchError } from 'rxjs';
+import {
+  Subject,
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  of,
+  tap,
+  catchError,
+  finalize,
+} from 'rxjs';
 
 @Component({
   selector: 'app-find-group',
@@ -27,6 +36,7 @@ export class FindGroupComponent {
   searchTerm = signal('');
   results = signal<Group[]>([]);
   loading = signal(false);
+  joiningGroupId = signal<string | null>(null);
 
   // Search Stream
   private searchSubject = new Subject<string>();
@@ -67,12 +77,17 @@ export class FindGroupComponent {
   joinGroup(group: Group): void {
     if (!this.currentUser()) return;
 
-    // Optimistic UI could be added here
-    this.membershipService.requestJoin(group.id, this.currentUser()!.id).subscribe({
-      next: () => {
-        // Navigate to group detail or show success message
-        this.router.navigate(['/groups', group.id]);
-      },
-    });
+    this.joiningGroupId.set(group.id);
+
+    this.membershipService
+      .requestJoin(group.id, this.currentUser()!.id)
+      .pipe(finalize(() => this.joiningGroupId.set(null)))
+      .subscribe({
+        next: () => {
+          // Navigate to group detail or show success message
+          this.router.navigate(['/groups', group.id]);
+        },
+        error: (err) => console.error('Error joining group', err),
+      });
   }
 }
