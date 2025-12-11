@@ -1,4 +1,48 @@
 <div class="mt-8">
+  <!-- Invitations Section -->
+  <div class="mb-10" *ngIf="hasInvites()">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+      <span>📩</span> Invitaciones Pendientes
+    </h3>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div
+        *ngFor="let invite of invites()"
+        class="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm relative overflow-hidden"
+      >
+        <div class="absolute top-0 right-0 p-2 opacity-10">
+          <svg class="w-16 h-16 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
+            />
+          </svg>
+        </div>
+
+        <div class="relative z-10">
+          <p class="text-sm text-blue-600 font-medium mb-1">Te invitaron a unirte a:</p>
+          <h4 class="text-lg font-bold text-gray-800 truncate">{{ invite.group.name }}</h4>
+          <p class="text-xs text-gray-500 mt-1 line-clamp-2">
+            {{ invite.group.description || 'Sin descripción' }}
+          </p>
+
+          <div class="mt-4 flex gap-2">
+            <button
+              (click)="acceptInvite(invite.group.id)"
+              class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-md transition-colors cursor-pointer"
+            >
+              Aceptar
+            </button>
+            <button
+              (click)="rejectInvite(invite.group.id)"
+              class="flex-1 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 text-sm font-medium py-2 px-3 rounded-md transition-colors cursor-pointer"
+            >
+              Rechazar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="flex justify-between items-center mb-6">
     <h3 class="text-xl font-semibold text-gray-900">Mis Grupos</h3>
     <div class="flex gap-3">

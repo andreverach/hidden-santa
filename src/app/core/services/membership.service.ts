@@ -12,21 +12,62 @@ import {
   writeBatch,
   arrayUnion,
   arrayRemove,
+  collectionGroup,
+  where,
+  onSnapshot,
 } from '@angular/fire/firestore';
-import { Observable, from } from 'rxjs';
-import { GroupMember } from '../models/group.model';
+import { Observable, from, combineLatest, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+import { GroupMember, Group } from '../models/group.model';
+import { GroupService } from './group.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MembershipService {
   private firestore = inject(Firestore);
+  private groupService = inject(GroupService);
 
   // Get members of a specific group
   getGroupMembers(groupId: string): Observable<GroupMember[]> {
     const membersCollection = collection(this.firestore, `groups/${groupId}/members`);
     const q = query(membersCollection);
     return collectionData(q) as Observable<GroupMember[]>;
+  }
+
+  // Get pending invites for a user across all groups
+  getPendingInvites(userId: string): Observable<{ group: Group; member: GroupMember }[]> {
+    const membersGroup = collectionGroup(this.firestore, 'members');
+    const q = query(membersGroup, where('userId', '==', userId), where('status', '==', 'invited'));
+
+    return new Observable<any[]>((observer) => {
+      return onSnapshot(
+        q,
+        (snapshot) => observer.next(snapshot.docs),
+        (error) => observer.error(error)
+      );
+    }).pipe(
+      switchMap((docs) => {
+        if (docs.length === 0) return of([]);
+
+        const tasks = docs.map((docSnap) => {
+          const member = docSnap.data() as GroupMember;
+          // groups/{groupId}/members/{userId}
+          const groupRef = docSnap.ref.parent.parent;
+          if (!groupRef) return of(null);
+
+          return this.groupService
+            .getGroup(groupRef.id)
+            .pipe(map((group) => (group ? { group, member } : null)));
+        });
+
+        return combineLatest(tasks).pipe(
+          map((results) =>
+            results.filter((r): r is { group: Group; member: GroupMember } => r !== null)
+          )
+        );
+      })
+    );
   }
 
   // Invite a user to a group (Admin action)
