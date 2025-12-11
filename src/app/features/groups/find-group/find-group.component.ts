@@ -75,7 +75,7 @@ export class FindGroupComponent {
   }
 
   joinGroup(group: Group): void {
-    if (!this.currentUser()) return;
+    if (!this.currentUser() || !group.isOpen) return;
 
     this.joiningGroupId.set(group.id);
 

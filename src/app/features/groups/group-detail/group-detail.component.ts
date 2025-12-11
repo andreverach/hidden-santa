@@ -140,6 +140,12 @@ export class GroupDetailComponent implements OnInit {
 
   // Invite Logic
   searchUsersToInvite(): void {
+    const group = this.group();
+    if (!group?.isOpen) {
+      alert('El grupo está cerrado. Ábrelo para invitar nuevos participantes.');
+      return;
+    }
+
     const term = this.inviteSearchTerm();
     if (term.length < 3) return;
 
@@ -166,13 +172,18 @@ export class GroupDetailComponent implements OnInit {
   }
 
   inviteUser(user: AppUser): void {
-    const groupId = this.group()?.id;
-    if (!groupId) return;
+    const group = this.group();
+    if (!group?.id) return;
+
+    if (!group.isOpen) {
+      alert('El grupo está cerrado. No se puede invitar.');
+      return;
+    }
 
     // Optimistic remove from results
     this.inviteResults.update((current) => current.filter((u) => u.id !== user.id));
 
-    this.membershipService.inviteUser(groupId, user.id).subscribe({
+    this.membershipService.inviteUser(group.id, user.id).subscribe({
       next: () => {
         alert(`Invitación enviada a ${user.displayName}`);
         this.inviteSearchTerm.set('');
@@ -222,6 +233,24 @@ export class GroupDetailComponent implements OnInit {
 
     this.membershipService.removeWishlistItem(groupId, user.id, itemId).subscribe({
       error: (err) => console.error('Error removing wish item:', err),
+    });
+  }
+
+  toggleGroupStatus(): void {
+    const group = this.group();
+    if (!group || !this.isAdmin()) return;
+
+    const newStatus = !group.isOpen;
+    const action = newStatus ? 'abrir' : 'cerrar';
+
+    if (!confirm(`¿Estás seguro de que deseas ${action} el grupo?`)) return;
+
+    this.groupService.toggleGroupOpenStatus(group.id, newStatus).subscribe({
+      next: () => {
+        // Optimistic or rely on subscription
+        // Subscription will handle it
+      },
+      error: (err) => console.error('Error toggling group status:', err),
     });
   }
 }

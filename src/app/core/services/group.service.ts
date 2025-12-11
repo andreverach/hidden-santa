@@ -84,7 +84,7 @@ export class GroupService {
     const normalizedTerm = normalizeString(term);
     const q = query(
       this.groupsCollection,
-      where('isOpen', '==', true),
+      // where('isOpen', '==', true), // User wants to see closed groups too
       where('searchName', '>=', normalizedTerm),
       where('searchName', '<=', normalizedTerm + '\uf8ff'),
       limit(10)
@@ -98,6 +98,16 @@ export class GroupService {
       updateDoc(docRef, {
         status: false,
         deletedAt: Timestamp.now(),
+      })
+    );
+  }
+
+  toggleGroupOpenStatus(groupId: string, isOpen: boolean): Observable<void> {
+    const docRef = doc(this.firestore, 'groups', groupId);
+    return from(
+      updateDoc(docRef, {
+        isOpen: isOpen,
+        updatedAt: Timestamp.now(),
       })
     );
   }

@@ -50,6 +50,14 @@
           ></span>
           {{ g.isOpen ? 'Abierto' : 'Cerrado' }}
         </span>
+
+        <button
+          *ngIf="isAdmin()"
+          (click)="toggleGroupStatus()"
+          class="ml-4 inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer"
+        >
+          {{ g.isOpen ? '🔒 Cerrar Grupo' : '🔓 Abrir Grupo' }}
+        </button>
       </div>
 
       <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
@@ -233,64 +241,92 @@
       <div class="border-t border-gray-200 px-4 py-5 sm:px-6" *ngIf="isAdmin()">
         <h4 class="text-lg font-medium text-gray-900 mb-4">Invitar Participantes</h4>
 
-        <div class="flex gap-2 mb-4">
-          <input
-            type="text"
-            [(ngModel)]="inviteSearchTerm"
-            (keyup.enter)="searchUsersToInvite()"
-            placeholder="Buscar usuario por nombre..."
-            class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-          />
-          <button
-            (click)="searchUsersToInvite()"
-            [disabled]="inviteLoading()"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:opacity-50"
-          >
-            Buscar
-          </button>
-        </div>
+        <div *ngIf="g.isOpen; else closedInvite">
+          <div class="flex gap-2 mb-4">
+            <input
+              type="text"
+              [(ngModel)]="inviteSearchTerm"
+              (keyup.enter)="searchUsersToInvite()"
+              placeholder="Buscar usuario por nombre..."
+              class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+            />
+            <button
+              (click)="searchUsersToInvite()"
+              [disabled]="inviteLoading()"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:opacity-50"
+            >
+              Buscar
+            </button>
+          </div>
 
-        <!-- Invite Results -->
-        <div *ngIf="inviteLoading()" class="flex justify-center py-4">
-          <app-loading-spinner
-            sizeClass="h-6 w-6"
-            colorClass="border-indigo-600"
-          ></app-loading-spinner>
-        </div>
+          <!-- Invite Results -->
+          <div *ngIf="inviteLoading()" class="flex justify-center py-4">
+            <app-loading-spinner
+              sizeClass="h-6 w-6"
+              colorClass="border-indigo-600"
+            ></app-loading-spinner>
+          </div>
 
-        <ul
-          *ngIf="inviteResults().length > 0"
-          class="divide-y divide-gray-200 border rounded-md border-gray-200"
-        >
-          <li
-            *ngFor="let user of inviteResults()"
-            class="p-3 flex items-center justify-between hover:bg-gray-50"
+          <ul
+            *ngIf="inviteResults().length > 0"
+            class="divide-y divide-gray-200 border rounded-md border-gray-200"
           >
-            <div class="flex items-center">
-              <div
-                class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600"
+            <li
+              *ngFor="let user of inviteResults()"
+              class="p-3 flex items-center justify-between hover:bg-gray-50"
+            >
+              <div class="flex items-center">
+                <div
+                  class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600"
+                >
+                  {{ user.displayName.charAt(0) || 'U' }}
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-gray-900">{{ user.displayName }}</p>
+                  <p class="text-xs text-gray-500">{{ user.email }}</p>
+                </div>
+              </div>
+              <button
+                (click)="inviteUser(user)"
+                class="text-indigo-600 hover:text-indigo-900 text-sm font-medium cursor-pointer"
               >
-                {{ user.displayName.charAt(0) || 'U' }}
+                Invitar
+              </button>
+            </li>
+          </ul>
+          <p
+            *ngIf="
+              inviteResults().length === 0 && inviteSearchTerm().length > 3 && !inviteLoading()
+            "
+            class="text-xs text-gray-500 mt-2"
+          >
+            No se encontraron usuarios o ya son miembros del grupo.
+          </p>
+        </div>
+        <ng-template #closedInvite>
+          <div class="rounded-md bg-yellow-50 p-4 border border-yellow-200">
+            <div class="flex">
+              <div class="shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
               </div>
               <div class="ml-3">
-                <p class="text-sm font-medium text-gray-900">{{ user.displayName }}</p>
-                <p class="text-xs text-gray-500">{{ user.email }}</p>
+                <h3 class="text-sm font-medium text-yellow-800">Grupo Cerrado</h3>
+                <div class="mt-2 text-sm text-yellow-700">
+                  <p>
+                    El grupo está cerrado para nuevos ingresos. Abre el grupo para poder enviar
+                    invitaciones.
+                  </p>
+                </div>
               </div>
             </div>
-            <button
-              (click)="inviteUser(user)"
-              class="text-indigo-600 hover:text-indigo-900 text-sm font-medium cursor-pointer"
-            >
-              Invitar
-            </button>
-          </li>
-        </ul>
-        <p
-          *ngIf="inviteResults().length === 0 && inviteSearchTerm().length > 3 && !inviteLoading()"
-          class="text-xs text-gray-500 mt-2"
-        >
-          No se encontraron usuarios o ya son miembros del grupo.
-        </p>
+          </div>
+        </ng-template>
       </div>
     </div>
   </div>

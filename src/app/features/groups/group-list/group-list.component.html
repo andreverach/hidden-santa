@@ -91,7 +91,18 @@
       class="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow duration-200 border border-gray-100"
     >
       <div class="px-4 py-5 sm:p-6">
-        <h4 class="text-lg font-medium text-gray-900 truncate">{{ group.name }}</h4>
+        <div class="flex justify-between items-start">
+          <h4 class="text-lg font-medium text-gray-900 truncate flex-1">{{ group.name }}</h4>
+          <span
+            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium shrink-0 ml-2"
+            [ngClass]="{
+              'bg-green-100 text-green-800': group.isOpen,
+              'bg-red-100 text-red-800': !group.isOpen
+            }"
+          >
+            {{ group.isOpen ? 'Abierto' : 'Cerrado' }}
+          </span>
+        </div>
         <p class="mt-1 text-sm text-gray-500 line-clamp-2">
           {{ group.description || 'Sin descripción' }}
         </p>
