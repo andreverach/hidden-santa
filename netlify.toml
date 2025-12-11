@@ -1,5 +1,5 @@
 [build]
-  publish = "dist/hidden-santa"
+  publish = "dist/hidden-santa/browser"
   command = "ng build"
 [[redirects]]
   from = "/*"
