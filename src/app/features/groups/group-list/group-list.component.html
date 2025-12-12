@@ -27,15 +27,17 @@
           <div class="mt-4 flex gap-2">
             <button
               (click)="acceptInvite(invite.group.id)"
-              class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-md transition-colors cursor-pointer"
+              [disabled]="processingInviteId() !== null"
+              class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-md transition-colors cursor-pointer disabled:opacity-50"
             >
-              Aceptar
+              {{ processingInviteId() === invite.group.id ? '...' : 'Aceptar' }}
             </button>
             <button
               (click)="rejectInvite(invite.group.id)"
-              class="flex-1 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 text-sm font-medium py-2 px-3 rounded-md transition-colors cursor-pointer"
+              [disabled]="processingInviteId() !== null"
+              class="flex-1 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 text-sm font-medium py-2 px-3 rounded-md transition-colors cursor-pointer disabled:opacity-50"
             >
-              Rechazar
+              {{ processingInviteId() === invite.group.id ? '...' : 'Rechazar' }}
             </button>
           </div>
         </div>

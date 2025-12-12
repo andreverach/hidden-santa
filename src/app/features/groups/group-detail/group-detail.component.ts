@@ -52,6 +52,9 @@ export class GroupDetailComponent implements OnInit {
   loading = signal<boolean>(true);
   membersLoading = signal<boolean>(true);
   drawLoading = signal<boolean>(false);
+  toggleLoading = signal<boolean>(false);
+  processingMemberId = signal<string | null>(null);
+  processingWishitemId = signal<string | null>(null);
 
   // Invite Logic Signals
   inviteSearchTerm = signal('');
@@ -145,21 +148,27 @@ export class GroupDetailComponent implements OnInit {
 
   approveMember(member: MemberWithProfile): void {
     const groupId = this.group()?.id;
-    if (!groupId) return;
+    if (!groupId || this.processingMemberId()) return;
 
-    this.membershipService.updateStatus(groupId, member.userId, 'active').subscribe(() => {
-      // Automatic update via subscription
+    this.processingMemberId.set(member.userId);
+    this.membershipService.updateStatus(groupId, member.userId, 'active').subscribe({
+      next: () => this.processingMemberId.set(null),
+      error: () => this.processingMemberId.set(null),
     });
   }
 
   removeMember(member: MemberWithProfile): void {
     const groupId = this.group()?.id;
-    if (!groupId) return;
+    if (!groupId || this.processingMemberId()) return;
 
     // Confirmation could be added here
     if (!confirm('¿Estás seguro?')) return;
 
-    this.membershipService.removeMember(groupId, member.userId).subscribe();
+    this.processingMemberId.set(member.userId);
+    this.membershipService.removeMember(groupId, member.userId).subscribe({
+      next: () => this.processingMemberId.set(null),
+      error: () => this.processingMemberId.set(null),
+    });
   }
 
   // Invite Logic
@@ -251,12 +260,17 @@ export class GroupDetailComponent implements OnInit {
   removeWishItem(itemId: string): void {
     const groupId = this.group()?.id;
     const user = this.currentUser();
-    if (!groupId || !user) return;
+    if (!groupId || !user || this.processingWishitemId()) return;
 
     if (!confirm('¿Borrar este deseo?')) return;
 
+    this.processingWishitemId.set(itemId);
     this.membershipService.removeWishlistItem(groupId, user.id, itemId).subscribe({
-      error: (err) => console.error('Error removing wish item:', err),
+      next: () => this.processingWishitemId.set(null),
+      error: (err) => {
+        console.error('Error removing wish item:', err);
+        this.processingWishitemId.set(null);
+      },
     });
   }
 
@@ -269,12 +283,17 @@ export class GroupDetailComponent implements OnInit {
 
     if (!confirm(`¿Estás seguro de que deseas ${action} el grupo?`)) return;
 
+    if (!confirm(`¿Estás seguro de que deseas ${action} el grupo?`)) return;
+
+    this.toggleLoading.set(true);
     this.groupService.toggleGroupOpenStatus(group.id, newStatus).subscribe({
       next: () => {
-        // Optimistic or rely on subscription
-        // Subscription will handle it
+        this.toggleLoading.set(false);
       },
-      error: (err) => console.error('Error toggling group status:', err),
+      error: (err) => {
+        console.error('Error toggling group status:', err);
+        this.toggleLoading.set(false);
+      },
     });
   }
 

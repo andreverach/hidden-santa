@@ -28,6 +28,7 @@ export class GroupListComponent implements OnInit {
   groups = signal<Group[]>([]);
   invites = signal<{ group: Group; member: GroupMember }[]>([]);
   loading = signal<boolean>(true);
+  processingInviteId = signal<string | null>(null);
 
   currentUser = this.authService.currentUser;
 
@@ -63,25 +64,43 @@ export class GroupListComponent implements OnInit {
   }
 
   acceptInvite(groupId: string) {
+    if (this.processingInviteId()) return;
+    this.processingInviteId.set(groupId);
+
     this.authService.user$.pipe(take(1)).subscribe((user) => {
-      if (!user) return;
+      if (!user) {
+        this.processingInviteId.set(null);
+        return;
+      }
       this.membershipService.updateStatus(groupId, user.uid, 'active').subscribe({
         next: () => {
-          // Toast or specific UI update if needed (auto-updates via realtime listener)
+          this.processingInviteId.set(null);
         },
-        error: (err) => console.error(err),
+        error: (err) => {
+          console.error(err);
+          this.processingInviteId.set(null);
+        },
       });
     });
   }
 
   rejectInvite(groupId: string) {
+    if (this.processingInviteId()) return;
+    this.processingInviteId.set(groupId);
+
     this.authService.user$.pipe(take(1)).subscribe((user) => {
-      if (!user) return;
+      if (!user) {
+        this.processingInviteId.set(null);
+        return;
+      }
       this.membershipService.removeMember(groupId, user.uid).subscribe({
         next: () => {
-          // Toast or specific UI update if needed
+          this.processingInviteId.set(null);
         },
-        error: (err) => console.error(err),
+        error: (err) => {
+          console.error(err);
+          this.processingInviteId.set(null);
+        },
       });
     });
   }
