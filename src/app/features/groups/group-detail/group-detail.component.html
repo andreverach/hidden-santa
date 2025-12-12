@@ -61,6 +61,31 @@
       </div>
 
       <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        <!-- Secret Santa Card (Visible if assigned) -->
+        <div
+          *ngIf="myAssignment() as assignment"
+          class="mb-8 bg-linear-to-r from-purple-500 to-indigo-600 rounded-lg shadow-lg p-6 text-white text-center"
+        >
+          <h3 class="text-2xl font-bold mb-2">🎄 Tu Amigo Secreto 🎅</h3>
+          <p class="mb-4 text-purple-100">¡Ya tienes asignado a quién regalar!</p>
+
+          <details class="group cursor-pointer">
+            <summary
+              class="list-none inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 transition-colors focus:outline-none"
+            >
+              <span>🎁 Toca para revelar</span>
+            </summary>
+            <div
+              class="mt-4 animate-fade-in text-xl font-bold bg-white/20 rounded p-4 backdrop-blur-sm"
+            >
+              {{ assignment.receiverName }}
+              <p class="text-sm font-normal mt-1 text-purple-100">
+                Revisa su lista de deseos abajo 👇
+              </p>
+            </div>
+          </details>
+        </div>
+
         <div class="mb-8" *ngIf="currentMember() as myMember">
           <h4 class="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
             <span>🎁</span> Mi Lista de Deseos
@@ -318,10 +343,30 @@
               <div class="ml-3">
                 <h3 class="text-sm font-medium text-yellow-800">Grupo Cerrado</h3>
                 <div class="mt-2 text-sm text-yellow-700">
-                  <p>
-                    El grupo está cerrado para nuevos ingresos. Abre el grupo para poder enviar
-                    invitaciones.
-                  </p>
+                  <p>El grupo está cerrado para nuevos ingresos.</p>
+
+                  <!-- Admin Actions when Closed -->
+                  <div class="mt-4" *ngIf="isAdmin()">
+                    <div *ngIf="!g.drawStatus || g.drawStatus === 'pending'">
+                      <button
+                        (click)="executeDraw()"
+                        [disabled]="drawLoading()"
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:opacity-50"
+                      >
+                        🎲 Realizar Sorteo (Amigo Secreto)
+                      </button>
+                      <p class="mt-2 text-xs text-yellow-600">
+                        Asegúrate de que todos estén en el grupo. Una vez realizado, no se puede
+                        deshacer.
+                      </p>
+                    </div>
+                    <div
+                      *ngIf="g.drawStatus === 'completed'"
+                      class="flex items-center text-green-700 gap-2 font-medium"
+                    >
+                      <span>✅ Sorteo Realizado</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -331,3 +376,4 @@
     </div>
   </div>
 </div>
+```

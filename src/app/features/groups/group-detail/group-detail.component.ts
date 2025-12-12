@@ -9,9 +9,15 @@ import { SkeletonLoaderComponent } from '../../../shared/components/skeleton-loa
 import { MembershipService } from '../../../core/services/membership.service';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/auth/auth.service';
-import { Group, GroupMember, WishlistItem } from '../../../core/models/group.model';
+import {
+  Group,
+  GroupMember,
+  WishlistItem,
+  GroupAssignment,
+} from '../../../core/models/group.model';
 import { AppUser } from '../../../core/models/user.model';
 import { Timestamp } from '@angular/fire/firestore';
+import { DrawService } from '../../../core/services/draw.service';
 
 interface MemberWithProfile extends GroupMember {
   user?: AppUser;
@@ -37,12 +43,15 @@ export class GroupDetailComponent implements OnInit {
   private membershipService = inject(MembershipService);
   private userService = inject(UserService);
   private authService = inject(AuthService);
+  private drawService = inject(DrawService);
 
   // Signals
   group = signal<Group | undefined>(undefined);
   members = signal<MemberWithProfile[]>([]);
+  myAssignment = signal<GroupAssignment | undefined>(undefined);
   loading = signal<boolean>(true);
   membersLoading = signal<boolean>(true);
+  drawLoading = signal<boolean>(false);
 
   // Invite Logic Signals
   inviteSearchTerm = signal('');
@@ -116,6 +125,21 @@ export class GroupDetailComponent implements OnInit {
           this.membersLoading.set(false);
         },
         error: () => this.membersLoading.set(false),
+      });
+
+    // 3. Assignment Subscription (if group is closed and draw completed)
+    // We trigger this check when group changes
+    // But easier to just subscribe based on groupId and userId
+    groupId$
+      .pipe(
+        switchMap((id) => {
+          const user = this.currentUser();
+          if (!id || !user) return of(undefined);
+          return this.drawService.getMyAssignment(id, user.id);
+        })
+      )
+      .subscribe((assignment) => {
+        this.myAssignment.set(assignment);
       });
   }
 
@@ -251,6 +275,37 @@ export class GroupDetailComponent implements OnInit {
         // Subscription will handle it
       },
       error: (err) => console.error('Error toggling group status:', err),
+    });
+  }
+
+  executeDraw(): void {
+    const group = this.group();
+    if (!group || !group.id || !this.isAdmin()) return;
+
+    if (group.isOpen) {
+      alert('Cierra el grupo primero para realizar el sorteo.');
+      return;
+    }
+
+    if (this.members().filter((m) => m.status === 'active').length < 2) {
+      alert('Se necesitan al menos 2 miembros activos para el sorteo.');
+      return;
+    }
+
+    if (!confirm('¿Iniciar el Sorteo ahora? Esto asignará amigos secretos aleatoriamente.')) return;
+
+    this.drawLoading.set(true);
+    // Pass only basic members to service to avoid weird object issues, though casting handles it
+    this.drawService.runDraw(group.id, this.members()).subscribe({
+      next: () => {
+        this.drawLoading.set(false);
+        alert('¡Sorteo realizado con éxito!');
+      },
+      error: (err) => {
+        console.error('Draw error:', err);
+        this.drawLoading.set(false);
+        alert('Error al realizar el sorteo. Intenta de nuevo.');
+      },
     });
   }
 }
