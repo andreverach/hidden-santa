@@ -1,20 +1,20 @@
-<div class="min-h-screen bg-gray-50 py-8">
+<div class="min-h-screen bg-slate-900 py-8">
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="mb-6 flex items-center justify-between">
-      <h2 class="text-2xl font-bold text-gray-900">Buscar Grupos</h2>
-      <a routerLink="/dashboard" class="text-sm text-indigo-600 hover:text-indigo-500">
+      <h2 class="text-2xl font-bold text-slate-100">Buscar Grupos</h2>
+      <a routerLink="/dashboard" class="text-sm text-emerald-400 hover:text-emerald-300">
         Volver al Dashboard
       </a>
     </div>
 
     <!-- Search Box -->
-    <div class="bg-white p-4 rounded-lg shadow mb-6">
+    <div class="bg-slate-800 p-4 rounded-lg shadow-lg border border-slate-700 mb-6">
       <label for="search" class="block text-sm font-medium text-gray-700 sr-only"
         >Buscar grupos</label
       >
       <div class="relative rounded-md shadow-sm">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -29,35 +29,35 @@
           id="search"
           [ngModel]="searchTerm()"
           (ngModelChange)="onSearch($event)"
-          class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-3"
+          class="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-slate-600 bg-slate-700 text-slate-100 placeholder-slate-400 rounded-md py-3"
           placeholder="Busca un grupo por nombre..."
         />
       </div>
-      <p class="mt-2 text-xs text-gray-500">Escribe al menos 2 caracteres para buscar.</p>
+      <p class="mt-2 text-xs text-slate-400">Escribe al menos 2 caracteres para buscar.</p>
     </div>
 
     <!-- Results -->
     <div class="space-y-4">
       <div *ngIf="loading()" class="flex justify-center py-8">
-        <app-loading-spinner colorClass="border-indigo-600"></app-loading-spinner>
+        <app-loading-spinner colorClass="border-emerald-500"></app-loading-spinner>
       </div>
 
       <ng-container *ngIf="!loading()">
         <div
           *ngFor="let group of results()"
-          class="bg-white shadow rounded-lg p-6 flex justify-between items-center transition hover:shadow-md"
+          class="bg-slate-800 shadow-lg border border-slate-700 rounded-lg p-6 flex justify-between items-center transition hover:shadow-xl"
         >
           <div>
-            <h3 class="text-lg font-medium text-gray-900 flex items-center gap-2">
+            <h3 class="text-lg font-medium text-slate-100 flex items-center gap-2">
               {{ group.name }}
               <span
                 *ngIf="currentUser()?.id === group.creatorId"
-                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800"
+                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-900 text-indigo-300 border border-indigo-700"
               >
                 Admin
               </span>
             </h3>
-            <p class="text-sm text-gray-500">{{ group.description || 'Sin descripción' }}</p>
+            <p class="text-sm text-slate-400">{{ group.description || 'Sin descripción' }}</p>
             <div class="mt-2 flex gap-2">
               <span
                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
@@ -70,7 +70,7 @@
               </span>
               <span
                 *ngIf="group.memberIds.includes(currentUser()?.id || '')"
-                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-900 text-blue-300 border border-blue-700"
               >
                 Miembro
               </span>
@@ -81,7 +81,7 @@
           <ng-container *ngIf="group.memberIds.includes(currentUser()?.id || ''); else joinAction">
             <a
               [routerLink]="['/groups', group.id]"
-              class="ml-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer"
+              class="ml-4 inline-flex items-center px-4 py-2 border border-slate-600 shadow-sm text-sm font-medium rounded-md text-slate-200 bg-slate-700 hover:bg-slate-600 focus:outline-none cursor-pointer"
             >
               Ver Grupo
             </a>
@@ -92,8 +92,8 @@
               (click)="joinGroup(group)"
               [disabled]="joiningGroupId() === group.id || !group.isOpen"
               [ngClass]="{
-                'bg-indigo-600 hover:bg-indigo-700 text-white': group.isOpen,
-                'bg-gray-300 cursor-not-allowed text-gray-500': !group.isOpen
+                'bg-emerald-600 hover:bg-emerald-500 text-white': group.isOpen,
+                'bg-slate-600 cursor-not-allowed text-slate-400': !group.isOpen
               }"
               class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none disabled:opacity-50"
             >
@@ -113,9 +113,9 @@
 
         <div
           *ngIf="results().length === 0 && searchTerm().length >= 2"
-          class="text-center py-12 bg-white rounded-lg shadow"
+          class="text-center py-12 bg-slate-800 border border-slate-700 rounded-lg shadow-lg"
         >
-          <p class="text-gray-500">No se encontraron grupos con ese nombre.</p>
+          <p class="text-slate-400">No se encontraron grupos con ese nombre.</p>
         </div>
       </ng-container>
     </div>
