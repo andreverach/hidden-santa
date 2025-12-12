@@ -306,8 +306,19 @@ export class GroupDetailComponent implements OnInit {
       return;
     }
 
-    if (this.members().filter((m) => m.status === 'active').length < 2) {
+    const members = this.members();
+    // 1. Check for sufficient members
+    if (members.filter((m) => m.status === 'active').length < 2) {
       alert('Se necesitan al menos 2 miembros activos para el sorteo.');
+      return;
+    }
+
+    // 2. Check for PENDING members (New Requirement)
+    const pendingMembers = members.filter((m) => m.status !== 'active');
+    if (pendingMembers.length > 0) {
+      alert(
+        'No se puede iniciar el sorteo. Hay miembros pendientes de aceptar la invitación o solicitud. Elimínalos o espera a que acepten.'
+      );
       return;
     }
 
