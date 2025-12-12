@@ -29,6 +29,8 @@ export class GroupListComponent implements OnInit {
   invites = signal<{ group: Group; member: GroupMember }[]>([]);
   loading = signal<boolean>(true);
 
+  currentUser = this.authService.currentUser;
+
   // Computed Signals (Derived State)
   hasGroups = computed(() => this.groups().length > 0);
   hasInvites = computed(() => this.invites().length > 0);

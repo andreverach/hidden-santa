@@ -48,38 +48,67 @@
           class="bg-white shadow rounded-lg p-6 flex justify-between items-center transition hover:shadow-md"
         >
           <div>
-            <h3 class="text-lg font-medium text-gray-900">{{ group.name }}</h3>
+            <h3 class="text-lg font-medium text-gray-900 flex items-center gap-2">
+              {{ group.name }}
+              <span
+                *ngIf="currentUser()?.id === group.creatorId"
+                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800"
+              >
+                Admin
+              </span>
+            </h3>
             <p class="text-sm text-gray-500">{{ group.description || 'Sin descripción' }}</p>
-            <span
-              class="mt-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-              [ngClass]="{
-                'bg-green-100 text-green-800': group.isOpen,
-                'bg-red-100 text-red-800': !group.isOpen
-              }"
-            >
-              {{ group.isOpen ? 'Abierto' : 'Cerrado' }}
-            </span>
+            <div class="mt-2 flex gap-2">
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                [ngClass]="{
+                  'bg-green-100 text-green-800': group.isOpen,
+                  'bg-red-100 text-red-800': !group.isOpen
+                }"
+              >
+                {{ group.isOpen ? 'Abierto' : 'Cerrado' }}
+              </span>
+              <span
+                *ngIf="group.memberIds.includes(currentUser()?.id || '')"
+                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+              >
+                Miembro
+              </span>
+            </div>
           </div>
-          <button
-            (click)="joinGroup(group)"
-            [disabled]="joiningGroupId() === group.id || !group.isOpen"
-            [ngClass]="{
-              'bg-indigo-600 hover:bg-indigo-700 text-white': group.isOpen,
-              'bg-gray-300 cursor-not-allowed text-gray-500': !group.isOpen
-            }"
-            class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none disabled:opacity-50"
-          >
-            <ng-container *ngIf="joiningGroupId() !== group.id">
-              {{ group.isOpen ? 'Unirse' : 'Cerrado' }}
-            </ng-container>
-            <ng-container *ngIf="joiningGroupId() === group.id">
-              <app-loading-spinner
-                sizeClass="h-4 w-4"
-                colorClass="border-white"
-              ></app-loading-spinner>
-              <span class="ml-2">Uniendo...</span>
-            </ng-container>
-          </button>
+
+          <!-- Actions -->
+          <ng-container *ngIf="group.memberIds.includes(currentUser()?.id || ''); else joinAction">
+            <a
+              [routerLink]="['/groups', group.id]"
+              class="ml-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer"
+            >
+              Ver Grupo
+            </a>
+          </ng-container>
+
+          <ng-template #joinAction>
+            <button
+              (click)="joinGroup(group)"
+              [disabled]="joiningGroupId() === group.id || !group.isOpen"
+              [ngClass]="{
+                'bg-indigo-600 hover:bg-indigo-700 text-white': group.isOpen,
+                'bg-gray-300 cursor-not-allowed text-gray-500': !group.isOpen
+              }"
+              class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none disabled:opacity-50"
+            >
+              <ng-container *ngIf="joiningGroupId() !== group.id">
+                {{ group.isOpen ? 'Unirse' : 'Cerrado' }}
+              </ng-container>
+              <ng-container *ngIf="joiningGroupId() === group.id">
+                <app-loading-spinner
+                  sizeClass="h-4 w-4"
+                  colorClass="border-white"
+                ></app-loading-spinner>
+                <span class="ml-2">Uniendo...</span>
+              </ng-container>
+            </button>
+          </ng-template>
         </div>
 
         <div
